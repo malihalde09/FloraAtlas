@@ -1,6 +1,5 @@
 streamlit
-pillow
-opencv-python
-pyzbar
 folium
 streamlit-folium
+opencv-python-headless
+Pillow
