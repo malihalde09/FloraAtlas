@@ -1,0 +1,6 @@
+streamlit
+pillow
+opencv-python
+pyzbar
+folium
+streamlit-folium

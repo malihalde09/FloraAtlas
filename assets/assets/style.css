@@ -1,0 +1,543 @@
+/* FloraAtlas - Global Styles */
+/* Professional Botanical Theme */
+
+/* ===== RESET & BASE ===== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+.page-wrapper {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* ===== NAVBAR ===== */
+.navbar {
+    background: #EEF4E9;
+    border-radius: 16px;
+    box-shadow: 0 2px 20px rgba(85, 116, 90, 0.08);
+    padding: 12px 24px;
+    margin: 20px 0 30px 0;
+    border: 1px solid #E3ECDD;
+    position: relative;
+}
+
+.navbar-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.navbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.brand-icon {
+    font-size: 24px;
+    line-height: 1;
+}
+
+.brand-name {
+    font-size: 22px;
+    font-weight: 700;
+    color: #000000;
+    letter-spacing: -0.5px;
+}
+
+.navbar-links {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    list-style: none;
+}
+
+.nav-link {
+    color: #000000;
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: 500;
+    padding: 6px 12px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    background: none;
+    border: none;
+}
+
+.nav-link:hover {
+    background: rgba(111, 143, 114, 0.1);
+    color: #000000;
+}
+
+.nav-link.active {
+    color: #55745A;
+    background: rgba(85, 116, 90, 0.08);
+}
+
+.admin-link {
+    background: #6F8F72;
+    color: #FFFFFF !important;
+    padding: 6px 18px;
+    border-radius: 20px;
+    font-weight: 600;
+}
+
+.admin-link:hover {
+    background: #55745A !important;
+    color: #FFFFFF !important;
+}
+
+/* Mobile menu toggle */
+.navbar-toggle {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    cursor: pointer;
+    padding: 5px;
+}
+
+.bar {
+    width: 25px;
+    height: 2.5px;
+    background: #000000;
+    border-radius: 3px;
+    transition: all 0.3s ease;
+}
+
+/* ===== HERO SECTION ===== */
+.hero-section {
+    background: #FFFFFF;
+    border-radius: 24px;
+    padding: 40px 50px;
+    margin: 10px 0 30px 0;
+    border: 1px solid #E3ECDD;
+    box-shadow: 0 4px 30px rgba(85, 116, 90, 0.05);
+}
+
+.hero-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    align-items: center;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+/* Left side */
+.hero-left {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.hero-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: #6F8F72;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+}
+
+.hero-title {
+    font-size: 52px;
+    font-weight: 800;
+    color: #000000;
+    line-height: 1.1;
+    margin: 0;
+    letter-spacing: -1px;
+}
+
+.hero-subtitle {
+    font-size: 20px;
+    font-weight: 400;
+    color: #000000;
+    font-style: italic;
+    margin: -4px 0 12px 0;
+    opacity: 0.8;
+}
+
+.hero-heading {
+    font-size: 26px;
+    font-weight: 600;
+    color: #000000;
+    margin: 10px 0 8px 0;
+}
+
+.hero-description {
+    font-size: 16px;
+    line-height: 1.7;
+    color: #000000;
+    max-width: 450px;
+    margin: 4px 0 20px 0;
+    opacity: 0.85;
+}
+
+/* Hero Buttons */
+.hero-buttons {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 28px;
+    border-radius: 30px;
+    font-size: 15px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: none;
+    color: #000000;
+    background: #E3ECDD;
+}
+
+.btn-primary {
+    background: #D8E4D0;
+    color: #000000;
+}
+
+.btn-primary:hover {
+    background: #C9D9C1;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(85, 116, 90, 0.15);
+}
+
+.btn-secondary {
+    background: #F1F6ED;
+    color: #000000;
+    border: 1.5px solid #D8E4D0;
+}
+
+.btn-secondary:hover {
+    background: #E8EFE2;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(85, 116, 90, 0.08);
+}
+
+/* ===== RIGHT SIDE VISUAL ===== */
+.hero-right {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.hero-visual {
+    position: relative;
+    width: 100%;
+    max-width: 300px;
+    aspect-ratio: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.visual-circle {
+    width: 260px;
+    height: 260px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #EEF4E9 0%, #D8E4D0 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    box-shadow: 0 10px 40px rgba(85, 116, 90, 0.08);
+}
+
+.plant-illustration {
+    width: 140px;
+    height: 140px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.plant-illustration svg {
+    width: 100%;
+    height: 100%;
+}
+
+.visual-accent {
+    position: absolute;
+    width: 320px;
+    height: 320px;
+    border-radius: 50%;
+    border: 1.5px solid #E3ECDD;
+    opacity: 0.4;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    animation: pulse-accent 4s ease-in-out infinite;
+}
+
+@keyframes pulse-accent {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.3; }
+    50% { transform: translate(-50%, -50%) scale(1.05); opacity: 0.6; }
+}
+
+/* ===== INFO SECTION ===== */
+.info-section {
+    text-align: center;
+    padding: 15px 0 10px 0;
+    margin-bottom: 20px;
+}
+
+.info-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.info-item {
+    font-size: 14px;
+    color: #000000;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    opacity: 0.7;
+}
+
+.info-divider {
+    color: #C9D9C1;
+    font-size: 18px;
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+
+/* Tablets and smaller laptops */
+@media (max-width: 992px) {
+    .hero-container {
+        grid-template-columns: 1fr;
+        text-align: center;
+        gap: 30px;
+    }
+
+    .hero-left {
+        align-items: center;
+    }
+
+    .hero-description {
+        max-width: 100%;
+        text-align: center;
+    }
+
+    .hero-buttons {
+        justify-content: center;
+    }
+
+    .hero-visual {
+        max-width: 200px;
+    }
+
+    .visual-circle {
+        width: 200px;
+        height: 200px;
+    }
+
+    .plant-illustration {
+        width: 100px;
+        height: 100px;
+    }
+
+    .visual-accent {
+        width: 250px;
+        height: 250px;
+    }
+
+    .hero-title {
+        font-size: 40px;
+    }
+
+    .hero-heading {
+        font-size: 22px;
+    }
+
+    .hero-subtitle {
+        font-size: 18px;
+    }
+}
+
+/* Mobile devices */
+@media (max-width: 768px) {
+    .page-wrapper {
+        padding: 0 12px;
+    }
+
+    .navbar {
+        padding: 10px 16px;
+        margin: 10px 0 20px 0;
+        border-radius: 12px;
+    }
+
+    .navbar-links {
+        display: none;
+        flex-direction: column;
+        width: 100%;
+        gap: 8px;
+        padding: 16px 0 8px 0;
+        border-top: 1px solid #E3ECDD;
+        margin-top: 12px;
+    }
+
+    .navbar-links.active {
+        display: flex;
+    }
+
+    .navbar-toggle {
+        display: flex;
+    }
+
+    .nav-link {
+        width: 100%;
+        text-align: center;
+        padding: 10px 12px;
+        font-size: 14px;
+    }
+
+    .admin-link {
+        text-align: center;
+    }
+
+    .brand-name {
+        font-size: 18px;
+    }
+
+    .brand-icon {
+        font-size: 20px;
+    }
+
+    .hero-section {
+        padding: 25px 20px;
+        border-radius: 16px;
+    }
+
+    .hero-title {
+        font-size: 32px;
+    }
+
+    .hero-subtitle {
+        font-size: 16px;
+    }
+
+    .hero-heading {
+        font-size: 18px;
+        margin: 6px 0 4px 0;
+    }
+
+    .hero-description {
+        font-size: 14px;
+        line-height: 1.6;
+    }
+
+    .hero-buttons {
+        flex-direction: column;
+        width: 100%;
+        gap: 10px;
+    }
+
+    .btn {
+        width: 100%;
+        justify-content: center;
+        padding: 12px 20px;
+    }
+
+    .hero-visual {
+        max-width: 160px;
+    }
+
+    .visual-circle {
+        width: 160px;
+        height: 160px;
+    }
+
+    .plant-illustration {
+        width: 80px;
+        height: 80px;
+    }
+
+    .visual-accent {
+        width: 200px;
+        height: 200px;
+    }
+
+    .info-container {
+        gap: 12px;
+    }
+
+    .info-item {
+        font-size: 12px;
+    }
+
+    .info-divider {
+        font-size: 14px;
+    }
+
+    .hero-label {
+        font-size: 10px;
+        letter-spacing: 2px;
+    }
+}
+
+/* Very small mobile devices */
+@media (max-width: 480px) {
+    .hero-title {
+        font-size: 26px;
+    }
+
+    .hero-heading {
+        font-size: 16px;
+    }
+
+    .hero-section {
+        padding: 20px 16px;
+    }
+
+    .navbar {
+        padding: 8px 12px;
+        margin: 6px 0 16px 0;
+    }
+
+    .brand-name {
+        font-size: 16px;
+    }
+
+    .visual-circle {
+        width: 130px;
+        height: 130px;
+    }
+
+    .plant-illustration {
+        width: 65px;
+        height: 65px;
+    }
+
+    .visual-accent {
+        width: 160px;
+        height: 160px;
+    }
+
+    .hero-visual {
+        max-width: 130px;
+    }
+
+    .btn {
+        font-size: 13px;
+        padding: 10px 16px;
+    }
+}
