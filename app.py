@@ -285,12 +285,12 @@ if st.session_state.get('logged_in', False):
             st.session_state['show_qr'] = False
             st.rerun()
 
-    # ===== LOCATION TRACKER =====
+    # ===== LOCATION TRACKER (FIXED) =====
     if st.session_state.get('show_location', False):
         st.markdown("---")
         st.markdown('<h2 style="color: #445932;">📍 Location Tracker</h2>', unsafe_allow_html=True)
         
-        search_term = st.text_input("🌿 Enter plant name:", placeholder="e.g., Neem")
+        search_term = st.text_input("🌿 Enter plant name:", placeholder="e.g., Neem", key="loc_search_input")
         
         col1, col2 = st.columns(2)
         with col1:
@@ -298,16 +298,23 @@ if st.session_state.get('logged_in', False):
         with col2:
             show_all_clicked = st.button("📋 Show All", key="loc_show_all", use_container_width=True)
         
-        plants_to_show = []
+        # ===== SESSION STATE FOR PERSISTENCE =====
+        if 'plants_to_show' not in st.session_state:
+            st.session_state['plants_to_show'] = []
+        
         if search_clicked and search_term:
+            plants_list = []
             all_plants = get_all_plants()
             for plant in all_plants:
                 if search_term.lower() in plant[1].lower():
-                    plants_to_show.append(plant)
-            if not plants_to_show:
+                    plants_list.append(plant)
+            st.session_state['plants_to_show'] = plants_list
+            if not plants_list:
                 st.warning("❌ No plants found.")
         elif show_all_clicked:
-            plants_to_show = get_all_plants()
+            st.session_state['plants_to_show'] = get_all_plants()
+        
+        plants_to_show = st.session_state['plants_to_show']
         
         if plants_to_show:
             st.success(f"✅ Found {len(plants_to_show)} plant(s):")
@@ -331,6 +338,7 @@ if st.session_state.get('logged_in', False):
                             st.write("❌ No location")
                     st.write("---")
         
+        # ===== MAP SHOW =====
         if st.session_state.get('selected_plant'):
             plant_id = st.session_state['selected_plant']
             plant = get_plant_by_id(plant_id)
@@ -357,6 +365,7 @@ if st.session_state.get('logged_in', False):
         if st.button("🔙 Back", key="back_location"):
             st.session_state['show_location'] = False
             st.session_state['selected_plant'] = None
+            st.session_state['plants_to_show'] = []
             st.rerun()
 
     # ===== ADMIN DASHBOARD =====
