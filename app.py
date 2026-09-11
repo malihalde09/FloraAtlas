@@ -2,13 +2,30 @@ import streamlit as st
 import folium
 from streamlit_folium import st_folium
 from database import get_all_plants, search_plants, get_plant_by_id, delete_plant, add_plant, get_total_plants, update_plant, get_plant_by_qr
-import cv2
+
+try:
+    import cv2
+    CV2_AVAILABLE = True
+except ImportError:
+    CV2_AVAILABLE = False
+
 import numpy as np
 from PIL import Image
-import ollama
+
+try:
+    import ollama
+    OLLAMA_AVAILABLE = True
+except ImportError:
+    OLLAMA_AVAILABLE = False
+
+try:
+    import pytesseract
+    PYTESSERACT_AVAILABLE = True
+except ImportError:
+    PYTESSERACT_AVAILABLE = False
+
 from urllib.parse import urlparse, parse_qs, unquote
 import re
-import pytesseract
 
 st.set_page_config(
     page_title="FloraAtlas",
@@ -84,18 +101,22 @@ if not st.session_state.get('logged_in', False):
 
 # ===== AI FUNCTION =====
 def get_ai_info(plant_name):
+    if not OLLAMA_AVAILABLE:
+        return "⚠️ AI not available on cloud deployment. Please run locally."
     try:
         response = ollama.chat(
             model='tinyllama',
             options={'num_predict': 512},
-            messages=[{'role': 'user', 'content': f"Tell me about {plant_name}. Give short, useful information about benefits and uses."}]
+            messages=[{'role': 'user', 'content': f"Tell me about {plant_name}. Give short, useful information."}]
         )
         return response['message']['content']
     except:
-        return "⚠️ AI service not available. Please try again later."
+        return "⚠️ AI service not available."
 
 # ===== READ PLANT NAME FROM IMAGE =====
 def read_plant_name_from_image(image):
+    if not (CV2_AVAILABLE and PYTESSERACT_AVAILABLE):
+        return None
     try:
         if isinstance(image, Image.Image):
             img = np.array(image)
@@ -110,9 +131,7 @@ def read_plant_name_from_image(image):
         common_plants = [
             "Neem", "Tulsi", "Aloe Vera", "Rose", "Mango", "Lavender", "Sunflower",
             "Shankarsivari", "Tagar", "Jaswand", "Supari", "Lakshman Phal",
-            "Gulmohar", "Kaju", "Madhumalati", "Nandaruk", "Comfrey",
-            "Hibiscus", "Azadirachta", "Ocimum", "Aloe", "Rosa", "Delonix",
-            "Tabernaemontana", "Areca", "Annona", "Ficus", "Quisqualis"
+            "Gulmohar", "Kaju", "Madhumalati", "Nandaruk", "Comfrey"
         ]
         for line in lines:
             for plant in common_plants:
@@ -125,7 +144,7 @@ def read_plant_name_from_image(image):
                     if re.match(r'^[A-Z][a-z]+', word):
                         return word
         return None
-    except Exception as e:
+    except Exception:
         return None
 
 # ===== EXTRACT PLANT NAME FROM QR DATA =====
@@ -138,16 +157,6 @@ def extract_plant_name_from_qr(data):
             if "LatinName" in params:
                 plant_name = unquote(params["LatinName"][0])
                 return plant_name
-        except:
-            pass
-    if "name" in data.lower():
-        try:
-            parsed = urlparse(data)
-            params = parse_qs(parsed.query)
-            for key in params:
-                if "name" in key.lower():
-                    plant_name = unquote(params[key][0])
-                    return plant_name
         except:
             pass
     try:
@@ -166,6 +175,49 @@ def extract_plant_name_from_qr(data):
     except:
         pass
     return "this plant"
+
+# ===== PROCESS QR (Common Function) =====
+def process_qr_image(image):
+    if not CV2_AVAILABLE:
+        st.error("⚠️ QR scanning not available on cloud. Please run locally.")
+        return
+    
+    img_array = np.array(image)
+    qr_detector = cv2.QRCodeDetector()
+    data, points, _ = qr_detector.detectAndDecode(img_array)
+    
+    if data:
+        st.success(f"✅ QR Code Data: {data}")
+        plant = get_plant_by_qr(data)
+        if not plant:
+            all_plants = get_all_plants()
+            for p in all_plants:
+                if p[11] and p[11] in data:
+                    plant = p
+                    break
+        if plant:
+            st.success(f"🌿 Plant: {plant[1]}")
+            st.write(f"**Scientific Name:** {plant[2]}")
+            st.write(f"**Category:** {plant[6]}")
+            if plant[12] and plant[13]:
+                st.write(f"📍 Location: {plant[12]}, {plant[13]}")
+            st.write("---")
+            st.write("### 🤖 AI Information")
+            with st.spinner("Getting AI information..."):
+                ai_info = get_ai_info(plant[1])
+                st.write(ai_info)
+        else:
+            st.warning("⚠️ Plant not found in database. Getting information from AI...")
+            plant_name = read_plant_name_from_image(image)
+            if not plant_name:
+                plant_name = extract_plant_name_from_qr(data)
+            st.write(f"### 🤖 AI Information about: {plant_name}")
+            with st.spinner("Getting AI information..."):
+                ai_info = get_ai_info(plant_name)
+                st.write(ai_info)
+            st.info(f"💡 Add this plant? QR Code ID: `{data}`")
+    else:
+        st.warning("⚠️ No QR code detected.")
 
 # ===== AFTER LOGIN =====
 if st.session_state.get('logged_in', False):
@@ -197,109 +249,35 @@ if st.session_state.get('logged_in', False):
     else:
         st.info("👤 You are logged in as a regular user. Admin features are restricted.")
 
-    # ===== QR SCANNER (Camera + Upload) =====
+    # ===== QR SCANNER =====
     if st.session_state.get('show_qr', False):
         st.markdown("---")
         st.markdown('<h2 style="color: #445932;">📱 QR Scanner</h2>', unsafe_allow_html=True)
-        st.info("📸 Scan QR code using camera or upload an image")
+        
+        if not CV2_AVAILABLE:
+            st.warning("⚠️ QR scanning not available on cloud. Please run locally for full features.")
         
         tab1, tab2 = st.tabs(["📷 Camera", "📤 Upload"])
         
-        # ===== TAB 1: CAMERA =====
         with tab1:
             st.write("### 📷 Scan with Camera")
             camera_image = st.camera_input("Point camera at QR code")
-            
             if camera_image:
                 try:
                     image = Image.open(camera_image)
                     st.image(image, caption='Captured Image', use_container_width=True)
-                    
-                    img_array = np.array(image)
-                    qr_detector = cv2.QRCodeDetector()
-                    data, points, _ = qr_detector.detectAndDecode(img_array)
-                    
-                    if data:
-                        st.success(f"✅ QR Code Data: {data}")
-                        plant = get_plant_by_qr(data)
-                        if not plant:
-                            all_plants = get_all_plants()
-                            for p in all_plants:
-                                if p[11] and p[11] in data:
-                                    plant = p
-                                    break
-                        if plant:
-                            st.success(f"🌿 Plant: {plant[1]}")
-                            st.write(f"**Scientific Name:** {plant[2]}")
-                            st.write(f"**Category:** {plant[6]}")
-                            if plant[12] and plant[13]:
-                                st.write(f"📍 Location: {plant[12]}, {plant[13]}")
-                            st.write("---")
-                            st.write("### 🤖 AI Information")
-                            with st.spinner("Getting AI information..."):
-                                ai_info = get_ai_info(plant[1])
-                                st.write(ai_info)
-                        else:
-                            st.warning("⚠️ Plant not found in database. Getting information from AI...")
-                            plant_name = read_plant_name_from_image(image)
-                            if not plant_name:
-                                plant_name = extract_plant_name_from_qr(data)
-                            st.write(f"### 🤖 AI Information about: {plant_name}")
-                            with st.spinner("Getting AI information..."):
-                                ai_info = get_ai_info(plant_name)
-                                st.write(ai_info)
-                            st.info(f"💡 Want to add this plant to database? QR Code ID: `{data}`")
-                    else:
-                        st.warning("⚠️ No QR code detected. Try adjusting camera.")
+                    process_qr_image(image)
                 except Exception as e:
                     st.error(f"Error: {e}")
         
-        # ===== TAB 2: UPLOAD =====
         with tab2:
             st.write("### 📤 Upload QR Code Image")
             uploaded_file = st.file_uploader("Choose an image", type=['png', 'jpg', 'jpeg'])
-            
             if uploaded_file:
                 try:
                     image = Image.open(uploaded_file)
                     st.image(image, caption='Uploaded Image', use_container_width=True)
-                    
-                    img_array = np.array(image)
-                    qr_detector = cv2.QRCodeDetector()
-                    data, points, _ = qr_detector.detectAndDecode(img_array)
-                    
-                    if data:
-                        st.success(f"✅ QR Code Data: {data}")
-                        plant = get_plant_by_qr(data)
-                        if not plant:
-                            all_plants = get_all_plants()
-                            for p in all_plants:
-                                if p[11] and p[11] in data:
-                                    plant = p
-                                    break
-                        if plant:
-                            st.success(f"🌿 Plant: {plant[1]}")
-                            st.write(f"**Scientific Name:** {plant[2]}")
-                            st.write(f"**Category:** {plant[6]}")
-                            if plant[12] and plant[13]:
-                                st.write(f"📍 Location: {plant[12]}, {plant[13]}")
-                            st.write("---")
-                            st.write("### 🤖 AI Information")
-                            with st.spinner("Getting AI information..."):
-                                ai_info = get_ai_info(plant[1])
-                                st.write(ai_info)
-                        else:
-                            st.warning("⚠️ Plant not found in database. Getting information from AI...")
-                            plant_name = read_plant_name_from_image(image)
-                            if not plant_name:
-                                plant_name = extract_plant_name_from_qr(data)
-                            st.write(f"### 🤖 AI Information about: {plant_name}")
-                            with st.spinner("Getting AI information..."):
-                                ai_info = get_ai_info(plant_name)
-                                st.write(ai_info)
-                            st.info(f"💡 Want to add this plant to database? QR Code ID: `{data}`")
-                    else:
-                        st.warning("⚠️ No QR code detected. Try a clearer image.")
+                    process_qr_image(image)
                 except Exception as e:
                     st.error(f"Error: {e}")
         
@@ -327,11 +305,9 @@ if st.session_state.get('logged_in', False):
                 if search_term.lower() in plant[1].lower():
                     plants_to_show.append(plant)
             if not plants_to_show:
-                st.warning("❌ No plants found with that name.")
+                st.warning("❌ No plants found.")
         elif show_all_clicked:
             plants_to_show = get_all_plants()
-            if not plants_to_show:
-                st.info("No plants in database.")
         
         if plants_to_show:
             st.success(f"✅ Found {len(plants_to_show)} plant(s):")
@@ -355,15 +331,12 @@ if st.session_state.get('logged_in', False):
                             st.write("❌ No location")
                     st.write("---")
         
-        # ===== MAP RENDER =====
         if st.session_state.get('selected_plant'):
             plant_id = st.session_state['selected_plant']
             plant = get_plant_by_id(plant_id)
-            
             if plant:
                 lat = plant[12]
                 lon = plant[13]
-                
                 if lat and lon and lat != 0.0 and lon != 0.0:
                     st.write("---")
                     st.write(f"### 📍 Location: **{plant[1]}**")
@@ -372,21 +345,14 @@ if st.session_state.get('logged_in', False):
                     
                     try:
                         m = folium.Map(location=[lat, lon], zoom_start=15)
-                        folium.Marker(
-                            [lat, lon],
-                            popup=f"{plant[1]}",
-                            icon=folium.Icon(color="green", icon="leaf")
-                        ).add_to(m)
-                        
+                        folium.Marker([lat, lon], popup=f"{plant[1]}",
+                                     icon=folium.Icon(color="green", icon="leaf")).add_to(m)
                         st_folium(m, width=700, height=450)
-                        
                         st.markdown(f"📍 [Open in Google Maps](https://www.google.com/maps?q={lat},{lon})")
                     except Exception as e:
                         st.error(f"Map Error: {e}")
                 else:
-                    st.warning("📍 No location coordinates available for this plant.")
-            else:
-                st.error("❌ Plant not found.")
+                    st.warning("📍 No location coordinates available.")
         
         if st.button("🔙 Back", key="back_location"):
             st.session_state['show_location'] = False
@@ -450,24 +416,17 @@ if st.session_state.get('logged_in', False):
                 if st.form_submit_button("✅ Add Plant"):
                     if plant_id and plant_name:
                         data = {
-                            'plant_id': plant_id,
-                            'plant_name': plant_name,
-                            'scientific_name': scientific_name,
-                            'kingdom': '',
-                            'family': '',
-                            'species': '',
-                            'category': category,
-                            'description': description,
-                            'medicinal_uses': '',
-                            'environmental_benefits': '',
-                            'image_path': '',
+                            'plant_id': plant_id, 'plant_name': plant_name,
+                            'scientific_name': scientific_name, 'kingdom': '', 'family': '', 'species': '',
+                            'category': category, 'description': description,
+                            'medicinal_uses': '', 'environmental_benefits': '', 'image_path': '',
                             'qr_code_id': qr_code_id,
                             'latitude': float(latitude) if latitude else None,
                             'longitude': float(longitude) if longitude else None
                         }
                         success, msg = add_plant(data)
                         if success:
-                            st.success(f"✅ {msg}")  
+                            st.success(f"✅ {msg}")
                             st.session_state['show_add'] = False
                             st.rerun()
                         else:
@@ -525,17 +484,10 @@ if st.session_state.get('logged_in', False):
                     
                     if st.form_submit_button("💾 Save Changes"):
                         data = {
-                            'plant_name': plant_name,
-                            'scientific_name': scientific_name,
-                            'kingdom': '',
-                            'family': '',
-                            'species': '',
-                            'category': category,
-                            'description': description,
-                            'medicinal_uses': '',
-                            'environmental_benefits': '',
-                            'image_path': '',
-                            'qr_code_id': qr_code_id,
+                            'plant_name': plant_name, 'scientific_name': scientific_name,
+                            'kingdom': '', 'family': '', 'species': '', 'category': category,
+                            'description': description, 'medicinal_uses': '', 'environmental_benefits': '',
+                            'image_path': '', 'qr_code_id': qr_code_id,
                             'latitude': float(latitude) if latitude else None,
                             'longitude': float(longitude) if longitude else None
                         }
